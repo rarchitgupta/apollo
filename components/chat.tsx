@@ -24,9 +24,6 @@ export function Chat({ className, ...props }: ComponentPropsWithoutRef<"div">) {
           role: "assistant",
         },
       ],
-      onFinish: (message) => {
-        //console.log("onFinish", message, completion);
-      },
     });
 
   const handleSubmitMessage = () => {
@@ -37,32 +34,34 @@ export function Chat({ className, ...props }: ComponentPropsWithoutRef<"div">) {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto" {...props}>
-      <ChatMessageArea scrollButtonAlignment="center">
-        <div className="max-w-2xl mx-auto w-full px-4 py-8 space-y-8">
-          {messages.map((message) => {
-            if (message.role !== "user") {
+    <div className="flex flex-col h-full w-full" {...props}>
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <ChatMessageArea scrollButtonAlignment="center">
+          <div className="max-w-2xl mx-auto w-full space-y-8">
+            {messages.map((message) => {
+              if (message.role !== "user") {
+                return (
+                  <ChatMessage key={message.id} id={message.id} type="incoming">
+                    <ChatMessageAvatar />
+                    <ChatMessageContent content={message.content} />
+                  </ChatMessage>
+                );
+              }
               return (
-                <ChatMessage key={message.id} id={message.id} type="incoming">
-                  <ChatMessageAvatar />
+                <ChatMessage
+                  key={message.id}
+                  id={message.id}
+                  variant="bubble"
+                  type="outgoing"
+                >
                   <ChatMessageContent content={message.content} />
                 </ChatMessage>
               );
-            }
-            return (
-              <ChatMessage
-                key={message.id}
-                id={message.id}
-                variant="bubble"
-                type="outgoing"
-              >
-                <ChatMessageContent content={message.content} />
-              </ChatMessage>
-            );
-          })}
-        </div>
-      </ChatMessageArea>
-      <div className="px-2 py-4 max-w-2xl mx-auto w-full">
+            })}
+          </div>
+        </ChatMessageArea>
+      </div>
+      <div className="w-full max-w-2xl mx-auto bg-white border-t p-4">
         <ChatInput
           value={input}
           onChange={handleInputChange}
