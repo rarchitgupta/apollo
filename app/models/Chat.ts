@@ -1,72 +1,40 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, model, Types } from "mongoose";
+import { UserDocument } from "./User";
 
-// Message Content Schema
-const contentPartSchema = new mongoose.Schema({
-  type: {
-    type: String,
-    enum: ["text", "reasoning", "image", "file", "audio", "tool-call"],
-    required: true,
-  },
-  text: String, // for text and reasoning
-  image: String, // for image
-  data: String, // for file
-  mimeType: String, // for file
-  audio: {
-    // for audio
-    data: String,
-    format: {
+export interface ChatDocument {
+  _id: string;
+  userId: Types.ObjectId | UserDocument;
+  title: string;
+  createdAt: Date;
+  updatedAt: Date;
+  lastMessageAt: Date;
+}
+
+const ChatSchema = new Schema<ChatDocument>(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    title: {
       type: String,
-      enum: ["mp3", "wav"],
+      required: true,
+      default: "New Chat",
+    },
+    lastMessageAt: {
+      type: Date,
+      default: Date.now,
     },
   },
-  // Tool call specific fields
-  toolCallId: String,
-  toolName: String,
-  args: mongoose.Schema.Types.Mixed,
-  argsText: String,
-  result: mongoose.Schema.Types.Mixed,
-  isError: Boolean,
-});
-
-// Message Schema
-const messageSchema = new mongoose.Schema({
-  id: { type: String, required: true },
-  role: {
-    type: String,
-    enum: ["user", "assistant", "system"],
-    required: true,
+  {
+    timestamps: true,
   },
-  content: [contentPartSchema],
-  parentId: { type: String, default: null },
-  createdAt: { type: Date, default: Date.now },
-  status: {
-    type: {
-      type: String,
-      enum: ["running", "requires-action", "complete", "incomplete"],
-    },
-    reason: String,
-    error: mongoose.Schema.Types.Mixed,
-  },
-  metadata: {
-    unstable_annotations: [mongoose.Schema.Types.Mixed],
-    unstable_data: [mongoose.Schema.Types.Mixed],
-    steps: [mongoose.Schema.Types.Mixed],
-    custom: mongoose.Schema.Types.Mixed,
-  },
-});
+);
 
-// Chat Schema
-const chatSchema = new mongoose.Schema({
-  chatId: { type: String, required: true, unique: true },
-  userId: { type: String, required: true, index: true },
-  title: { type: String, default: "New Chat" },
-  headId: { type: String, default: null },
-  messages: [messageSchema],
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-});
+// Index for querying chats by user and sorting by last message
+ChatSchema.index({ userId: 1, lastMessageAt: -1 });
 
-// Compound index for user's chats
-chatSchema.index({ userId: 1, createdAt: -1 });
-
-export const Chat = mongoose.models.Chat || mongoose.model("Chat", chatSchema);
+const Chat = mongoose.models?.Chat || model<ChatDocument>("Chat", ChatSchema);
+export default Chat;

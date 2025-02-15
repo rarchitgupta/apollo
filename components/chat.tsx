@@ -12,18 +12,26 @@ import {
 import { ChatMessageArea } from "@/components/ui/chat-message-area";
 import { useChat } from "@ai-sdk/react";
 import type { ComponentPropsWithoutRef } from "react";
+import { Message } from "ai";
 
-export function Chat({ className, ...props }: ComponentPropsWithoutRef<"div">) {
+interface ChatProps extends ComponentPropsWithoutRef<"div"> {
+  id?: string;
+  initialMessages?: Message[];
+}
+
+export function Chat({ className, id, initialMessages, ...props }: ChatProps) {
   const { messages, input, handleInputChange, handleSubmit, isLoading, stop } =
     useChat({
+      id,
       api: "/api/chat",
-      initialMessages: [
+      initialMessages: initialMessages || [
         {
           id: "1",
           content: "Hi! How may I help you today?",
           role: "assistant",
         },
       ],
+      sendExtraMessageFields: true,
     });
 
   const handleSubmitMessage = () => {
